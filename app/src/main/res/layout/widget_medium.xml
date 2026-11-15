@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Moyen widget : le dessin clair ou sombre (selon le mode du téléphone) et le minuteur d'Android par-dessus -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <FrameLayout
+        android:id="@+id/light"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="@integer/vis_light">
+        <ImageView
+            android:id="@+id/img_light"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitXY" />
+        <Chronometer
+            android:id="@+id/chrono_light"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="start"
+            android:fontFamily="sans-serif"
+            android:fontFeatureSettings="tnum"
+            android:includeFontPadding="false"
+            android:singleLine="true"
+            android:textSize="34sp"
+            android:importantForAccessibility="no" />
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/dark"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="@integer/vis_dark">
+        <ImageView
+            android:id="@+id/img_dark"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitXY" />
+        <Chronometer
+            android:id="@+id/chrono_dark"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="start"
+            android:fontFamily="sans-serif"
+            android:fontFeatureSettings="tnum"
+            android:includeFontPadding="false"
+            android:singleLine="true"
+            android:textSize="34sp"
+            android:importantForAccessibility="no" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/empty"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/widget_empty"
+        android:gravity="center"
+        android:padding="16dp"
+        android:text="@string/widget_empty"
+        android:textColor="@color/widget_text"
+        android:textSize="13sp"
+        android:visibility="gone" />
+</FrameLayout>
