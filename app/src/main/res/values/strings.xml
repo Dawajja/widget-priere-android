@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Horaires de prière</string>
+    <string name="widget_empty">Ouvre l’app Horaires de prière pour télécharger les horaires.</string>
+    <string name="widget_small">Prochaine prière et horaires du jour</string>
+    <string name="widget_medium">Compte à rebours et frise de la journée</string>
+    <string name="widget_lock">Écran verrouillé : le rond et le minuteur, en blanc</string>
+</resources>

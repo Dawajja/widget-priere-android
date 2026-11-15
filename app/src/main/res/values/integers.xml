@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Le widget montre le dessin clair ou sombre selon le mode du téléphone (0 = visible, 2 = caché : valeurs de l’attribut android:visibility) -->
+<resources>
+    <integer name="vis_light">0</integer>
+    <integer name="vis_dark">2</integer>
+</resources>
