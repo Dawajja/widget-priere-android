@@ -1,0 +1,38 @@
+# Fabrique l'application (APK) à chaque modification et la publie dans « Releases ».
+# L'app installée sur le téléphone la trouve là et propose la mise à jour.
+name: Construire l'application
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.11.1"
+      - name: Numéro de construction
+        run: echo "BUILD=$((GITHUB_RUN_NUMBER + 100))" >> "$GITHUB_ENV"
+      - name: Construire
+        run: gradle :app:assembleRelease --stacktrace
+      - name: Nommer l'application
+        run: cp app/build/outputs/apk/release/app-release.apk horaires-de-priere.apk
+      - name: Publier
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.${{ env.BUILD }}
+          name: Version 1.0 (Android) — construction ${{ env.BUILD }}
+          body: Horaires de prière pour Android, version 1.0. L’app propose elle-même cette mise à jour.
+          files: horaires-de-priere.apk
+          make_latest: true
