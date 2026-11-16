@@ -83,11 +83,13 @@ private val ICON_FILL = mapOf(
 )
 private val ICON_STROKE = mapOf(
     "Fajr" to "M2.2 11.95H13.8M8 9.6V6.4M5.2 9.9L4.3 7.6M10.8 9.9L11.7 7.6",
-    "Chourouk" to "M2.2 11.95H13.8M2.3 9.5H3.6M12.4 9.5H13.7M3.9 5.7L4.9 6.8M12.1 5.7L11.1 6.8M8 6.1V2.3M6.5 3.7L8 2.2L9.5 3.7",
+    "Chourouk" to "M2.2 11.95H13.8M2.3 9.5H3.6M12.4 9.5H13.7M3.9 5.7L4.9 6.8M12.1 5.7L11.1 6.8M8 6.2V2M6.25 3.45L8 2L9.75 3.45",
     "Duhr" to "M12.70 8.00L14.60 8.00M11.32 11.32L12.67 12.67M8.00 12.70L8.00 14.60M4.68 11.32L3.33 12.67M3.30 8.00L1.40 8.00M4.68 4.68L3.33 3.33M8.00 3.30L8.00 1.40M11.32 4.68L12.67 3.33",
     "Asr" to "M12.40 8.00L13.50 8.00M11.11 11.11L11.89 11.89M8.00 12.40L8.00 13.50M4.89 11.11L4.11 11.89M3.60 8.00L2.50 8.00M4.89 4.89L4.11 4.11M8.00 3.60L8.00 2.50M11.11 4.89L11.89 4.11",
-    "Maghrib" to "M2.2 11.95H13.8M2.3 9.5H3.6M12.4 9.5H13.7M3.9 5.7L4.9 6.8M12.1 5.7L11.1 6.8M8 2.2V6M6.5 4.6L8 6.1L9.5 4.6",
+    "Maghrib" to "M2.2 11.95H13.8M2.3 9.5H3.6M12.4 9.5H13.7M3.9 5.7L4.9 6.8M12.1 5.7L11.1 6.8M8 2V6.2M6.25 4.75L8 6.2L9.75 4.75",
 )
+/** Épaisseur des traits sur la grille de 16 : graisse « Medium » d'Apple, proportionnelle à la taille (comme sur l'iPhone). */
+private const val ICON_WEIGHT = 1.1f
 private val ICON_SUN = mapOf("Duhr" to 2.9f, "Asr" to 2.5f)
 
 // ───────────── Dessin ─────────────
@@ -128,7 +130,7 @@ class Renderer(private val density: Float) {
         ICON_STROKE[name]?.let { d ->
             val p = PathParser.createPathFromPathData(d); p.transform(m)
             drawPath(p, Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                this.color = color; style = Paint.Style.STROKE; strokeWidth = 1.2f
+                this.color = color; style = Paint.Style.STROKE; strokeWidth = ICON_WEIGHT * size / 16f
                 strokeCap = Paint.Cap.ROUND; strokeJoin = Paint.Join.ROUND
             })
         }
