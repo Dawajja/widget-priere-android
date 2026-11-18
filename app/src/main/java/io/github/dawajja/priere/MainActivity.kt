@@ -208,6 +208,24 @@ fun SettingsPage(onWidgets: () -> Unit, onHelp: () -> Unit) {
         val problem = remember { Widgets.diagnose(ctx) }
         if (problem != null) Text("Problème de widget : $problem", color = Color(0xFFE5484D), fontSize = 13.sp, lineHeight = 18.sp,
             modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp))
+        // batterie : sans cette autorisation, certains téléphones (Samsung…) bloquent les réveils du widget
+        var free by remember { mutableStateOf(Widgets.unrestricted(ctx)) }
+        LaunchedEffect(free) { while (!free) { kotlinx.coroutines.delay(1000); free = Widgets.unrestricted(ctx) } }
+        if (!free) {
+            Card {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text("Autoriser en arrière-plan", fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                    Text("Sans ça, le téléphone peut endormir l’app et le widget reste bloqué sur une prière passée.",
+                        fontSize = 14.sp, lineHeight = 20.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Button(onClick = {
+                        runCatching { ctx.startActivity(android.content.Intent(android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                            android.net.Uri.parse("package:" + ctx.packageName))) }
+                            .onFailure { ctx.startActivity(android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                android.net.Uri.parse("package:" + ctx.packageName))) }
+                    }) { Text("Autoriser") }
+                }
+            }
+        }
 
         // ── Mosquées ──
         Section("Mosquées")

@@ -1,7 +1,7 @@
 // ═════════════════════════════════════════════════════════════════
 //  HORAIRES DE PRIÈRE — Android (version 1.0 — 15 novembre 2026) : widgets de l'écran d'accueil
-//  Le dessin est refait pile à l'heure de chaque prière et du Chourouk, et toutes les 5 minutes
-//  écran allumé (frise). Le minuteur est celui d'Android : il avance tout seul, à la seconde.
+//  Le dessin est refait pile à l'heure de chaque prière et du Chourouk (même téléphone en veille),
+//  toutes les 5 minutes écran allumé (frise), et au moins tous les quarts d'heure en secours. Le minuteur est celui d'Android : il avance tout seul, à la seconde.
 //  Deux dessins (clair et sombre) : le téléphone montre le bon selon son mode, sans attendre.
 // ═════════════════════════════════════════════════════════════════
 package io.github.dawajja.priere
@@ -200,19 +200,39 @@ object Widgets {
     private fun spoken(s: State) = if (s.header.now) "L'heure de ${s.header.name}"
         else "Prochaine prière : ${s.header.name}${if (s.tomorrow) " demain" else ""} à ${java.text.SimpleDateFormat("HH:mm").format(s.header.at)}"
 
-    /** Prochain dessin : pile au prochain changement (prière, Chourouk, fin de « Maintenant »), et au plus tard dans 5 minutes. */
+    /**
+     * Prochains dessins, avec deux réveils séparés :
+     *  - au prochain changement (prière, Chourouk, fin de « Maintenant ») : réveil exact, même en veille,
+     *    pour que le widget ne reste jamais sur une prière passée ;
+     *  - toutes les 5 minutes pour la frise : sans réveil (attend que l'écran se rallume).
+     * En secours, un dessin au moins tous les quarts d'heure (Watchdog) relance la chaîne si Android l'a coupée.
+     */
     fun schedule(context: Context) {
-        val am = context.getSystemService(AlarmManager::class.java) ?: return
-        val pi = PendingIntent.getBroadcast(context, 1, Intent(context, SmallWidget::class.java).setAction(TICK),
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
-        val now = System.currentTimeMillis()
-        val change = state(context, now)?.change?.takeIf { it > now } ?: (now + 5 * 60000L)
-        val five = (now / 300000L + 1) * 300000L
-        val next = minOf(change, five) + 500
-        // RTC (sans réveil) : si l'écran est éteint, le dessin attend qu'il se rallume
-        if (Build.VERSION.SDK_INT < 31 || am.canScheduleExactAlarms()) am.setExact(AlarmManager.RTC, next, pi)
-        else am.setWindow(AlarmManager.RTC, next, 30000L, pi)
+        try {
+            val am = context.getSystemService(AlarmManager::class.java) ?: return
+            fun tick(code: Int) = PendingIntent.getBroadcast(context, code, Intent(context, SmallWidget::class.java).setAction(TICK),
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+            val now = System.currentTimeMillis()
+            val exact = Build.VERSION.SDK_INT < 31 || am.canScheduleExactAlarms()
+            state(context, now)?.change?.takeIf { it > now }?.let { change ->
+                if (exact) am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, change + 500, tick(1))
+                else am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, change + 500, tick(1))
+            }
+            val five = (now / 300000L + 1) * 300000L + 500
+            if (exact) am.setExact(AlarmManager.RTC, five, tick(6)) else am.setWindow(AlarmManager.RTC, five, 30000L, tick(6))
+        } catch (t: Throwable) { report(context, "réveil du widget", t) }
+        ensureWatchdog(context)
     }
+
+    /** Secours : redessine au moins tous les quarts d'heure, même si un réveil a été perdu. */
+    fun ensureWatchdog(context: Context) {
+        val req = PeriodicWorkRequestBuilder<Watchdog>(15, TimeUnit.MINUTES).build()
+        WorkManager.getInstance(context).enqueueUniquePeriodicWork("secours", ExistingPeriodicWorkPolicy.KEEP, req)
+    }
+
+    /** Vrai si Android laisse l'app tourner en arrière-plan sans restriction de batterie. */
+    fun unrestricted(context: Context): Boolean =
+        context.getSystemService(android.os.PowerManager::class.java)?.isIgnoringBatteryOptimizations(context.packageName) ?: true
 
     /** Téléchargement chaque nuit (avec Internet), comme l'automatisation de l'iPhone. */
     fun ensureNightly(context: Context) {
@@ -231,6 +251,10 @@ object Widgets {
             .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()).build()
         WorkManager.getInstance(context).enqueueUniqueWork("maintenant", ExistingWorkPolicy.KEEP, req)
     }
+}
+
+class Watchdog(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
+    override suspend fun doWork(): Result { Widgets.refresh(applicationContext); return Result.success() }
 }
 
 class DownloadWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
