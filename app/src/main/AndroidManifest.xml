@@ -9,6 +9,8 @@
     <!-- mises à jour de l'app depuis GitHub (onglet Releases) -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- demander à ne pas être endormi par l'économie de batterie (widget pile à l'heure) -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <application
         android:allowBackup="true"
